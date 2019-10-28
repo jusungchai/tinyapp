@@ -21,6 +21,7 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+console.log(urlDatabase);
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -64,6 +65,16 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
+});
+
+app.post("/urls/update/:shortURL", (req, res) => {
+  res.redirect(`/urls/${req.params.shortURL}`);
+});
+
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[res.req.params.id] = `http://${req.body.longURL}`;
+  res.redirect("/urls");
+  console.log(urlDatabase);
 });
 
 app.listen(PORT, () => {

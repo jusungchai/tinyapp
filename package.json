@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/jusungchai/tinyapp/issues"
   },
-  "homepage": "https://github.com/jusungchai/tinyapp#readme"
+  "homepage": "https://github.com/jusungchai/tinyapp#readme",
+  "dependencies": {
+    "ejs": "^2.7.1"
+  }
 }

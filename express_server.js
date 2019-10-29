@@ -10,6 +10,8 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
 
+const getUserByEmail = require('./helpers');
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -70,6 +72,8 @@ function urlsForUser(id) {
   }
   return urlDatabaseForUser;
 }
+
+
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "asdf123" },

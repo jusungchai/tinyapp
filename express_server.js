@@ -19,11 +19,62 @@ function generateRandomString() {
   return result;
 }
 
+function emailLookUp(emailAddress){
+  let usersValueArray = Object.values(users);
+  for (userValue of usersValueArray){
+    if (userValue.email === emailAddress){
+      return true;
+    }
+  }
+  return false;
+}
+
+function passwordLookUp(emailAddress, emailPassword){
+  let usersValueArray = Object.values(users);
+  for (userValue of usersValueArray){
+    if (userValue.email === emailAddress){
+      if (userValue.password === emailPassword){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function returnUserID(emailAddress, emailPassword){
+  let usersValueArray = Object.values(users);
+  for (userValue of usersValueArray){
+    if (userValue.email === emailAddress){
+      if (userValue.password === emailPassword){
+        return userValue.id;
+      }
+    }
+  }
+  return false;
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-//console.log(urlDatabase);
+
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  },
+  "asdf123": {
+    id: "asdf123", 
+    email: "chunsaa@gmail.com", 
+    password: "123123"
+  }
+}
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -38,28 +89,30 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  let userInfo = users[req.cookies["user_id"]];
   let templateVars = {
-    username: req.cookies["username"],
+    user: userInfo,
     urls: urlDatabase
-  };
+  }    
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    user: undefined    
+  } 
+  res.render("urls_new", templateVars);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+app.get("/urls/:shortURL", (req, res) => {  
+  let templateVars = { user: undefined, shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  //console.log(req.body);  // Log the POST request body to the console
   let randomURL = generateRandomString();
   urlDatabase[randomURL] = `http://${req.body.longURL}`;
   res.redirect("/urls");
-  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -79,17 +132,53 @@ app.post("/urls/update/:shortURL", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   urlDatabase[res.req.params.id] = `http://${req.body.longURL}`;
   res.redirect("/urls");
-  //console.log(urlDatabase);
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  if (req.body.email === "" || req.body.password === ""){
+    res.send(403);
+  } else if (!emailLookUp(req.body.email)) {
+    res.send(403);
+  } else if (!passwordLookUp(req.body.email, req.body.password)){
+    res.send(403);
+  } else {
+    let userID = returnUserID(req.body.email, req.body.password);
+    res.cookie("user_id", userID);
+    res.redirect("/urls");
+  } 
+});
+
+app.post("/logout", (req, res) => {  
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect("/urls");
+app.get("/login", (req, res) => {
+  let templateVars = {
+    user: undefined    
+  } 
+  res.render("login_page", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  let templateVars = {
+    user: undefined    
+  } 
+  res.render("signup_page", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  let userID = generateRandomString();
+  if (req.body.email === "" || req.body.password === ""){
+    res.send(400);
+  } else if (emailLookUp(req.body.email)) {
+    res.send(400);
+  } else {
+    let user = {id: userID, email: req.body.email, password: req.body.password};
+    users[userID] = user;
+    res.cookie("user_id", userID);
+    res.redirect("/urls");
+  }  
 });
 
 app.listen(PORT, () => {

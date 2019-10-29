@@ -1,11 +1,15 @@
-const getUserByEmail = function(email, database) {
-  let user = {};
-  for (let userId in database){
+/**
+ * @param  [string] email    email address to look up
+ * @param  [object] database database holding all users
+ * @return [object] matching user object or undefined if email not found       
+ **/
+const getUserByEmail = function(email, database) {  
+  for (let userID in database){
     if (database[userID].email === email){
-      return database[userID];
+      return userID;
     }
   }
-  return user;
+  return undefined;
 };
 
 module.exports = { getUserByEmail };

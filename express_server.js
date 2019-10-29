@@ -7,6 +7,8 @@ app.use(cookieParser());
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const bcrypt = require('bcrypt');
+
 app.set("view engine", "ejs");
 
 function generateRandomString() {
@@ -33,7 +35,7 @@ function passwordLookUp(emailAddress, emailPassword) {
   let usersValueArray = Object.values(users);
   for (userValue of usersValueArray) {
     if (userValue.email === emailAddress) {
-      if (userValue.password === emailPassword) {
+      if (bcrypt.compareSync(emailPassword, userValue.password)) {
         return true;
       }
     }
@@ -45,7 +47,7 @@ function returnUserID(emailAddress, emailPassword) {
   let usersValueArray = Object.values(users);
   for (userValue of usersValueArray) {
     if (userValue.email === emailAddress) {
-      if (userValue.password === emailPassword) {
+      if (bcrypt.compareSync(emailPassword, userValue.password)) {
         return userValue.id;
       }
     }
@@ -68,23 +70,7 @@ const urlDatabase = {
   "9sm5xK": { longURL: "http://www.google.com", userID: "asdf123" }
 };
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-  "asdf123": {
-    id: "asdf123",
-    email: "chunsaa@gmail.com",
-    password: "123123"
-  }
-}
+const users = {};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -100,8 +86,6 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let userInfo = users[req.cookies["user_id"]];
-  //console.log(urlDatabase);
-  //console.log(urlsForUser(userInfo.id));
   let templateVars = {
     user: userInfo,
     urls: userInfo ? urlsForUser(userInfo.id) : {}
@@ -112,8 +96,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.cookies["user_id"]]
-  }
-  console.log(req.cookies);
+  }  
   if (req.cookies["user_id"]) {
     res.render("urls_new", templateVars);
   } else {
@@ -122,8 +105,6 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  console.log(users[req.cookies["user_id"]]);
-  console.log(urlsForUser(req.cookies["user_id"]));
   let templateVars = { user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userURL: urlsForUser(req.cookies["user_id"]) };
   res.render("urls_show", templateVars);
 });
@@ -155,7 +136,7 @@ app.post("/urls/update/:shortURL", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   if (req.cookies["user_id"] === urlDatabase[req.params.id].userID) {
     urlDatabase[res.req.params.id].longURL = `http://${req.body.longURL}`;
-    res.redirect("/urls");    
+    res.redirect("/urls");
   } else {
     res.send(400);
   }
@@ -201,7 +182,9 @@ app.post("/register", (req, res) => {
   } else if (emailLookUp(req.body.email)) {
     res.send(400);
   } else {
-    let user = { id: userID, email: req.body.email, password: req.body.password };
+    const password = req.body.password;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    let user = { id: userID, email: req.body.email, password: hashedPassword };
     users[userID] = user;
     res.cookie("user_id", userID);
     res.redirect("/urls");

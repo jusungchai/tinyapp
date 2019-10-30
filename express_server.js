@@ -3,6 +3,7 @@ const express = require("express");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
+const methodOverride = require('method-override');
 
 //Declare port for server
 const PORT = 8080;
@@ -18,6 +19,7 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
+app.use(methodOverride('_method'));
 
 //Allow ejs for express
 app.set("view engine", "ejs");
@@ -175,7 +177,7 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");

@@ -106,8 +106,8 @@ const urlsForUser = function(id) {
 //---------------------------------DATABASE----------------------------------//
 //Initialize global url database
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "asdf123", totalCount: 0 },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "asdf123", totalCount: 0 }
+  //"b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "asdf123", totalCount: 0 },
+  //"9sm5xK": { longURL: "http://www.google.com", userID: "asdf123", totalCount: 0 }
 };
 
 //Initialize database for user information
@@ -140,7 +140,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.send(404, "Page Not Found");
   } else {
-    let templateVars = { user: users[req.session.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userURL: urlsForUser(req.session.user_id), totalCount: urlDatabase[req.params.shortURL].totalCount };
+    let templateVars = { user: users[req.session.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userURL: urlsForUser(req.session.user_id), totalCount: urlDatabase[req.params.shortURL].totalCount, uniqueVisitorLength: urlDatabase[req.params.shortURL].uniqueVisitor.length };
     res.render("urls_show", templateVars);
   }
 });
@@ -149,6 +149,11 @@ app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.send(404, "Page Not Found");
   } else {
+    if (req.session.user_id === undefined){
+      urlDatabase[req.params.shortURL].uniqueVisitor.push("unreg user");      
+    } else if (urlDatabase[req.params.shortURL].uniqueVisitor.indexOf(req.session.user_id) === -1){
+      urlDatabase[req.params.shortURL].uniqueVisitor.push(req.session.user_id);
+    }
     urlDatabase[req.params.shortURL].totalCount++;
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
@@ -174,7 +179,7 @@ app.get("/register", (req, res) => {
 //-----------------------------------POST------------------------------------//
 app.post("/urls", (req, res) => {
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = { longURL: `http://${req.body.longURL}`, userID: req.session.user_id, totalCount: 0 };
+  urlDatabase[randomURL] = { longURL: `http://${req.body.longURL}`, userID: req.session.user_id, totalCount: 0, uniqueVisitor: [] };
   res.redirect("/urls");
 });
 

@@ -105,10 +105,7 @@ const urlsForUser = function(id) {
 
 //---------------------------------DATABASE----------------------------------//
 //Initialize global url database
-const urlDatabase = {
-  //"b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "asdf123", totalCount: 0 },
-  //"9sm5xK": { longURL: "http://www.google.com", userID: "asdf123", totalCount: 0 }
-};
+const urlDatabase = {};
 
 //Initialize database for user information
 const users = {};

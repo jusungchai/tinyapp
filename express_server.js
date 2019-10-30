@@ -140,7 +140,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.send(404, "Page Not Found");
   } else {
-    let templateVars = { user: users[req.session.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userURL: urlsForUser(req.session.user_id), totalCount: urlDatabase[req.params.shortURL].totalCount, uniqueVisitorLength: urlDatabase[req.params.shortURL].uniqueVisitor.length };
+    let templateVars = { user: users[req.session.user_id], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userURL: urlsForUser(req.session.user_id), totalCount: urlDatabase[req.params.shortURL].totalCount, uniqueVisitorLength: urlDatabase[req.params.shortURL].uniqueVisitor.length, visitorInfo: urlDatabase[req.params.shortURL].visitorInfo };
     res.render("urls_show", templateVars);
   }
 });
@@ -151,8 +151,17 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     if (req.session.user_id === undefined){
       urlDatabase[req.params.shortURL].uniqueVisitor.push("unreg user");      
+      const date = new Date();
+      urlDatabase[req.params.shortURL].visitorInfo.push(`Unregistered User: ${date}`);      
     } else if (urlDatabase[req.params.shortURL].uniqueVisitor.indexOf(req.session.user_id) === -1){
       urlDatabase[req.params.shortURL].uniqueVisitor.push(req.session.user_id);
+      const id = req.session.user_id;
+      const date = new Date();
+      urlDatabase[req.params.shortURL].visitorInfo.push(`${id}: ${date}`); 
+    } else {
+      const id = req.session.user_id;
+      const date = new Date();
+      urlDatabase[req.params.shortURL].visitorInfo.push(`${id}: ${date}`); 
     }
     urlDatabase[req.params.shortURL].totalCount++;
     const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -179,7 +188,7 @@ app.get("/register", (req, res) => {
 //-----------------------------------POST------------------------------------//
 app.post("/urls", (req, res) => {
   let randomURL = generateRandomString();
-  urlDatabase[randomURL] = { longURL: `http://${req.body.longURL}`, userID: req.session.user_id, totalCount: 0, uniqueVisitor: [] };
+  urlDatabase[randomURL] = { longURL: `http://${req.body.longURL}`, userID: req.session.user_id, totalCount: 0, uniqueVisitor: [], visitorInfo: [] };
   res.redirect("/urls");
 });
 
@@ -230,7 +239,7 @@ app.post("/register", (req, res) => {
     res.send(400, "Field missing");
   } else if (emailLookUp(req.body.email)) {
     res.send(400, "Account with associated email already exists");
-  } else {
+  } else {    
     const password = req.body.password;
     const hashedPassword = bcrypt.hashSync(password, 10);
     let user = { id: userID, email: req.body.email, password: hashedPassword };

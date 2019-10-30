@@ -31,6 +31,11 @@
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </form>
+        <% for(let visitor of visitorInfo) { %>
+          <tr>
+            <p><%= visitor %></p>           
+          </tr>
+        <% } %>
       <% } else{ %> 
         <h1>You Do Not Own This URL</h1>
     <% } %>        
